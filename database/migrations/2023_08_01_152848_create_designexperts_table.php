@@ -11,14 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('designs', function (Blueprint $table) {
+        Schema::create('designexperts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
 
-            $table->json('polygraphy')->nullable();
-            $table->json('socialmedia')->nullable();
-            $table->json('poster')->nullable();
-            $table->json('logo')->nullable();
+            $table->boolean('status')->default(false);
+            $table->string('timetowork')->default("1-3 дня");
+
+            $table->integer('polygraphy')->default(1000);
+            $table->integer('socialmedia')->default(1000);
+            $table->integer('poster')->default(1000);
+            $table->integer('logo')->default(1000);
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
@@ -30,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('designs');
+        Schema::dropIfExists('designexperts');
     }
 };

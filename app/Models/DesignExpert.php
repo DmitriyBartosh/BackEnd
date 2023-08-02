@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Design extends Model
+class DesignExpert extends Model
 {
     use HasFactory;
+
+    protected $table = 'designexperts';
 
     /**
      * The attributes that are mass assignable.
@@ -16,6 +18,8 @@ class Design extends Model
      */
     protected $fillable = [
         'user_id',
+        'status',
+        'timetowork',
         'logo',
         'poster',
         'socialmedia',
@@ -28,14 +32,11 @@ class Design extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'logo' => 'array',
-        'poster' => 'array',
-        'socialmedia' => 'array',
-        'polygraphy' => 'array'
+        'status' => 'boolean',
+        'timetowork' => 'string',
+        'logo' => 'integer',
+        'poster' => 'integer',
+        'socialmedia' => 'integer',
+        'polygraphy' => 'integer'
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 }

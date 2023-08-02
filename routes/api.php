@@ -7,7 +7,10 @@ use App\Http\Controllers\Auth\YandexAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\ChangeDirectionController;
+use App\Http\Controllers\CheckRolesController;
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DesignExpertController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,8 +23,11 @@ use App\Http\Controllers\DesignController;
 |
 */
 
+// Для авторизованных пользователей
 Route::middleware(['auth:sanctum'])->group(function () {
+
     Route::post('auth/logout', [LogoutController::class, 'logout']);
+
     Route::get('user', function (Request $request) {
         $user = $request->user();
 
@@ -30,6 +36,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             'email' => $user->email
         ]);
     });
+
     // Скрывать или показывать направления
     Route::put('direction/change/design', [ChangeDirectionController::class, 'ChangeDesign']);
     Route::put('direction/change/frontend', [ChangeDirectionController::class, 'ChangeFrontend']);
@@ -41,6 +48,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('design/editlink', [DesignController::class, 'editLink']);
     Route::patch('design/deletelink', [DesignController::class, 'deleteLink']);
     Route::get('design/links', [DesignController::class, 'getLinks']);
+
+    Route::get('admin/check', [CheckRolesController::class, 'checkAdmin']);
+    Route::get('admin/expert', [CheckRolesController::class, 'checkExpert']);
+});
+
+// Добавлять или удалять администраторов для супер админа
+Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
+    Route::get('admin/users', [AdminController::class, 'users']);
+    Route::put('admin/design/add', [AdminController::class, 'addDesign']);
+    Route::put('admin/design/remove', [AdminController::class, 'removeDesign']);
+});
+
+// Для Экспертов по дизайну
+Route::middleware(['auth:sanctum', 'role:Design Expert'])->group(function () {
+    Route::get('admin/design/settings', [DesignExpertController::class, 'profileInfo']);
+    Route::get('admin/design/works', [DesignExpertController::class, 'works']);
+    Route::post('admin/design/editsettings', [DesignExpertController::class, 'editProfileInfo']);
 });
 
 Route::get('auth/vk', [VkAuthController::class, 'redirectToAuth']);
