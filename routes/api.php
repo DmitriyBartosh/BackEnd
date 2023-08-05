@@ -64,8 +64,9 @@ Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
 Route::middleware(['auth:sanctum', 'role:Design Expert'])->group(function () {
     Route::get('admin/design/settings', [DesignExpertController::class, 'profileInfo']);
     Route::get('admin/design/works', [DesignExpertController::class, 'works']);
-    Route::post('admin/design/editsettings', [DesignExpertController::class, 'editProfileInfo']);
+    Route::put('admin/design/editsettings', [DesignExpertController::class, 'editProfileInfo']);
 });
+
 
 Route::get('auth/vk', [VkAuthController::class, 'redirectToAuth']);
 Route::get('auth/vk/callback', [VkAuthController::class, 'handleAuthCallback']);

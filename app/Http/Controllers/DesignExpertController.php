@@ -27,14 +27,25 @@ class DesignExpertController extends Controller
     {
         $admin = Auth::user();
 
+        $admin->name = $request->name;
+
+        $admin->save();
+
         $settings = $admin->settings;
 
-        $settings->update(['logo' => $request->test]);
+        $settings->status = $request->status;
+        $settings->timetowork = $request->timetowork;
+
+        $settings->logo = $request->logo;
+        $settings->polygraphy = $request->polygraphy;
+        $settings->socialmedia = $request->socialmedia;
+        $settings->poster = $request->poster;
+
+        $settings->save();
 
 
         return response()->json([
-            'success' => true,
-            'settings' => $settings
+            'success' => true
         ]);
     }
 

@@ -16,6 +16,7 @@ class DesignController extends Controller
         $theme = $request->theme;
 
         $link = [
+            'id' => $request->id,
             'name' => $request->name,
             'link' => $request->link
         ];
@@ -47,6 +48,7 @@ class DesignController extends Controller
         $links_array = $design->$theme;
 
         $new_link = [
+            'id' => $request->id,
             'name' => $request->name,
             'link' => $request->link
         ];
