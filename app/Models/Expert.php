@@ -5,11 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DesignExpert extends Model
+class Expert extends Model
 {
     use HasFactory;
-
-    protected $table = 'designexperts';
 
     /**
      * The attributes that are mass assignable.
@@ -18,12 +16,14 @@ class DesignExpert extends Model
      */
     protected $fillable = [
         'user_id',
+        'avatar',
+        'name',
+        'about',
+        'slug',
+        'direction',
+        'price',
         'status',
-        'timetowork',
-        'logo',
-        'poster',
-        'socialmedia',
-        'polygraphy'
+        'backtowork'
     ];
 
     /**
@@ -33,10 +33,12 @@ class DesignExpert extends Model
      */
     protected $casts = [
         'status' => 'boolean',
-        'timetowork' => 'string',
-        'logo' => 'integer',
-        'poster' => 'integer',
-        'socialmedia' => 'integer',
-        'polygraphy' => 'integer'
+        'avatar' => 'string',
+        'name' => 'string',
+        'about' => 'string',
+        'slug' => 'string',
+        'direction' => 'string',
+        'price' => 'json',
+        'backtowork' => 'string'
     ];
 }

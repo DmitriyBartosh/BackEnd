@@ -21,9 +21,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
 
-            $table->boolean('design')->default(false);
-            $table->boolean('frontend')->default(false);
-            $table->boolean('photo')->default(false);
+            $table->json('direction')->nullable();
 
             $table->rememberToken();
             $table->timestamps();

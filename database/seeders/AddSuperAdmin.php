@@ -13,16 +13,6 @@ class AddSuperAdmin extends Seeder
      */
     public function run(): void
     {
-        $roles = [
-            'Super Admin',
-            'Design Expert',
-            'Frontend Expert'
-        ];
-
-        foreach ($roles as $role) {
-            Role::create(['name' => $role]);
-        };
-
         $superadmin = User::find(1);
         $superadmin->assignRole(['name' => 'Super Admin']);
     }

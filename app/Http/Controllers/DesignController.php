@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Design;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
 
 class DesignController extends Controller
 {
@@ -110,6 +112,22 @@ class DesignController extends Controller
             'polygraphy' => $design->polygraphy,
             'socialmedia' => $design->socialmedia,
             'poster' => $design->poster
+        ]);
+    }
+
+    function allExpert()
+    {
+        $role = Role::where('name', 'Design Expert')->first();
+        $experts = User::role($role)->get(['id', 'name', 'email']);
+
+
+        foreach ($experts as $expert) {
+            $expert->settings;
+        }
+
+
+        return response()->json([
+            'experts' => $experts,
         ]);
     }
 }

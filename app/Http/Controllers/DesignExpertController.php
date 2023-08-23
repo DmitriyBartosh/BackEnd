@@ -34,7 +34,7 @@ class DesignExpertController extends Controller
         $settings = $admin->settings;
 
         $settings->status = $request->status;
-        $settings->timetowork = $request->timetowork;
+        $settings->backtowork = $request->backtowork;
 
         $settings->logo = $request->logo;
         $settings->polygraphy = $request->polygraphy;

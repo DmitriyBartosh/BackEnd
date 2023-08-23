@@ -51,12 +51,8 @@ class VkAuthController extends Controller
         return response()->json([
             'user' => [
                 'name' => $user->name,
-                'email' => $user->email
-            ],
-            'directions' => [
-                'design' => $user->design,
-                'frontend' => $user->frontend,
-                'photo' => $user->photo
+                'email' => $user->email,
+                'direction' => $user->direction
             ],
             'access_token' => $user->createToken('vkontakte-token')->plainTextToken,
             'token_type' => 'Bearer',

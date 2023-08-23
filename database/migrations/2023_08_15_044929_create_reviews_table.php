@@ -11,19 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('designexperts', function (Blueprint $table) {
+        Schema::create('reviews', function (Blueprint $table) {
             $table->id();
+
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('expert_id');
 
-            $table->boolean('status')->default(false);
-            $table->string('timetowork')->default("1-3 дня");
+            $table->string('theme');
+            $table->string('name');
+            $table->string('link');
+            $table->string('status')->default('link checking');
 
-            $table->integer('polygraphy')->default(1000);
-            $table->integer('socialmedia')->default(1000);
-            $table->integer('poster')->default(1000);
-            $table->integer('logo')->default(1000);
+            $table->string('message_failure')->nullable();
+            $table->text('message_after_review')->nullable();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('expert_id')->references('id')->on('experts');
+
             $table->timestamps();
         });
     }
@@ -33,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('designexperts');
+        Schema::dropIfExists('reviews');
     }
 };

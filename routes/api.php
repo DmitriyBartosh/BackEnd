@@ -11,6 +11,8 @@ use App\Http\Controllers\CheckRolesController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DesignExpertController;
+use App\Http\Controllers\ReviewsController;
+use App\Http\Controllers\WorksController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,16 +40,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Скрывать или показывать направления
-    Route::put('direction/change/design', [ChangeDirectionController::class, 'ChangeDesign']);
-    Route::put('direction/change/frontend', [ChangeDirectionController::class, 'ChangeFrontend']);
-    Route::put('direction/change/photo', [ChangeDirectionController::class, 'ChangePhoto']);
-
+    Route::post('direction/change', [ChangeDirectionController::class, 'ChangeDirection']);
     Route::get('direction/status', [ChangeDirectionController::class, 'getDirections']);
 
-    Route::put('design/addlink', [DesignController::class, 'addLink']);
-    Route::patch('design/editlink', [DesignController::class, 'editLink']);
-    Route::patch('design/deletelink', [DesignController::class, 'deleteLink']);
-    Route::get('design/links', [DesignController::class, 'getLinks']);
+    Route::get('design/allexpert', [DesignController::class, 'allExpert']);
+
+    Route::get('works/all', [WorksController::class, 'getWorks']);
+    Route::post('works/add', [WorksController::class, 'addWorks']);
+    Route::post('works/edit', [WorksController::class, 'editWorks']);
+    Route::post('works/delete', [WorksController::class, 'deleteWorks']);
+
+
+    Route::put('review/add', [ReviewsController::class, 'addWorks']);
+    Route::get('review/works', [ReviewsController::class, 'allWorksForUser']);
 
     Route::get('admin/check', [CheckRolesController::class, 'checkAdmin']);
     Route::get('admin/expert', [CheckRolesController::class, 'checkExpert']);
@@ -56,7 +61,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // Добавлять или удалять администраторов для супер админа
 Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
     Route::get('admin/users', [AdminController::class, 'users']);
-    Route::put('admin/design/add', [AdminController::class, 'addDesign']);
+    Route::get('admin/expert/{id}', [AdminController::class, 'getExpert']);
+    Route::post('admin/expert/add', [AdminController::class, 'addExpert']);
+    Route::post('admin/expert/edit', [AdminController::class, 'editExpert']);
     Route::put('admin/design/remove', [AdminController::class, 'removeDesign']);
 });
 

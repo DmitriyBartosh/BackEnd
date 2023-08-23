@@ -24,9 +24,7 @@ class User extends Authenticatable
         'vkontakte_id',
         'yandex_id',
         'google_id',
-        'design',
-        'frontend',
-        'photo'
+        'direction'
     ];
 
     /**
@@ -48,13 +46,18 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function progress_design()
+    public function allworks()
     {
-        return $this->hasOne(Design::class);
+        return $this->hasMany(Works::class)->select('id', 'direction', 'theme', 'name', 'link');
     }
 
     public function settings()
     {
-        return $this->hasOne(DesignExpert::class);
+        return $this->hasOne(Expert::class);
+    }
+
+    public function work_under_review()
+    {
+        return $this->hasMany(Reviews::class)->select('id', 'expert_id', 'theme', 'name', 'link', 'status', 'message_failure', 'message_after_review');
     }
 }
