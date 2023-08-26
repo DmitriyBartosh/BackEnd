@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserCollection;
-use App\Models\DesignExpert;
 use App\Models\Expert;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +22,7 @@ class AdminController extends Controller
     {
         $user = User::find($id);
 
-        $expert = $user->settings;
+        $expert = $user->expert;
 
         return response()->json([
             'user' => $expert
@@ -47,53 +45,151 @@ class AdminController extends Controller
 
             $avatarFile = $expert["avatar"];
             $avatarName = $slug . "_avatar" .  "." . $avatarFile->getClientOriginalExtension();
-            $aratarSlug = "/images/" . $avatarName;
+            $avatarPath = "/images/" . $avatarName;
 
-            if ($direction === "design") {
-                $user->assignRole(['name' => 'Design Expert']);
+            // Назначаем нужную роль
+            switch ($direction) {
+                case 'design':
+                    $user->assignRole(['name' => 'Design Expert']);
+                    break;
 
-                $designExpert = new Expert();
-                $designExpert->user_id = $id;
-                $designExpert->avatar = $aratarSlug;
-                $designExpert->name = $name;
-                $designExpert->about = $about;
-                $designExpert->slug = $slug;
-                $designExpert->direction = $direction;
-                $designExpert->price = $price;
+                case 'frontend':
+                    $user->assignRole(['name' => 'Frontend Expert']);
+                    break;
 
-                // Сжать и загрузить аватар в /public/images
-                $avatar = Image::make($avatarFile);
-                $optimizeAvatar = $avatar->fit(1500, 1500)->encode('webp');
-                Storage::disk('public_images')->put($avatarName, $optimizeAvatar);
+                case 'photo':
+                    $user->assignRole(['name' => 'Photo Expert']);
+                    break;
+            }
 
-                // Сохранить изменения в таблицу
-                $designExpert->save();
+            $designExpert = new Expert();
+            $designExpert->user_id = $id;
+            $designExpert->avatar = $avatarPath;
+            $designExpert->name = $name;
+            $designExpert->about = $about;
+            $designExpert->slug = $slug;
+            $designExpert->direction = $direction;
+            $designExpert->price = $price;
 
+            // Сжать и загрузить аватар в /public/images
+            $avatar = Image::make($avatarFile);
+            $optimizeAvatar = $avatar->fit(1500, 1500)->encode('webp');
+            Storage::disk('public_images')->put($avatarName, $optimizeAvatar);
 
-                return response()->json(['message' => 'Эксперт по направлению графический дизайнер добавлен!'], 200);
-            };
-            return response()->json(['message' => "Направление еще не готово"], 200);
+            // Сохранить изменения в таблицу
+            $designExpert->save();
+
+            return response()->json(['message' => "Эксперт добавлен"], 200);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Мы не смогли добавить Ваш сервис',  'Значение: ' . $request->active . $th], 500);
         }
     }
 
-    public function removeDesign(Request $request)
+    public function editExpert(Request $request)
+    {
+        try {
+            $expert = $request->expert;
+            $price = $request->price;
+
+            $id = $expert["id"];
+            $user = User::find($id);
+
+            $editableExpert = Expert::where('user_id', $id)->first();
+
+            $direction = $expert["direction"];
+            $name = $expert["name"];
+            $about = $expert["about"];
+            $slug = $expert["slug"];
+
+            $avatar = $expert["avatar"];
+
+            if ($avatar !== $editableExpert->avatar) {
+                $avatarName = $slug . "_avatar" .  "." . $avatar->getClientOriginalExtension();
+                $avatarPath = "/images/" . $avatarName;
+
+                // Сжать и загрузить аватар в /public/images
+                $avatarImage = Image::make($avatar);
+                $optimizeAvatar = $avatarImage->fit(1500, 1500)->encode('webp');
+                Storage::disk('public_images')->put($avatarName, $optimizeAvatar);
+
+                $editableExpert->avatar = $avatarPath;
+            }
+
+            if ($direction !== $editableExpert->direction) {
+                // Удаляем старую роль
+                switch ($editableExpert->direction) {
+                    case 'design':
+                        $user->removeRole('Design Expert');
+                        break;
+
+                    case 'frontend':
+                        $user->removeRole('Frontend Expert');
+                        break;
+
+                    case 'photo':
+                        $user->removeRole('Photo Expert');
+                        break;
+                }
+
+                // Назначаем нужную роль
+                switch ($direction) {
+                    case 'design':
+                        $user->assignRole(['name' => 'Design Expert']);
+                        break;
+
+                    case 'frontend':
+                        $user->assignRole(['name' => 'Frontend Expert']);
+                        break;
+
+                    case 'photo':
+                        $user->assignRole(['name' => 'Photo Expert']);
+                        break;
+                }
+
+                $editableExpert->direction = $direction;
+            }
+
+            $editableExpert->name = $name;
+            $editableExpert->about = $about;
+            $editableExpert->slug = $slug;
+            $editableExpert->price = $price;
+
+            $editableExpert->save();
+
+
+            return response()->json(['message' => 'Эксперт успешно обновлен!'], 200);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Мы не смогли добавить Ваш сервис',  'Значение: ' . $request->active . $th], 500);
+        }
+    }
+
+    public function deleteDesign(Request $request)
     {
         $userId = $request->id;
 
         $user = User::find($userId)->first();
 
-        $user->removeRole('Design Expert');
+        $designExpert = Expert::where('user_id', $user->id)->first();
+        $direction = $designExpert->direction;
 
-        $designExpert = DesignExpert::where('user_id', $user->id)->first();
+        switch ($direction) {
+            case 'design':
+                $user->removeRole('Design Expert');
+                break;
+
+            case 'frontend':
+                $user->removeRole('Frontend Expert');
+                break;
+
+            case 'photo':
+                $user->removeRole('Photo Expert');
+                break;
+        }
+
         if ($designExpert) {
             $designExpert->delete();
         }
 
-
-        return response()->json([
-            'success' => true
-        ]);
+        return response()->json(['message' => 'Эксперт успешно удален!'], 200);
     }
 }

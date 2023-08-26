@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('direction');
             $table->json('price')->nullable();
 
-            $table->boolean('status')->default(false);
-            $table->string('backtowork')->default("");
+            $table->boolean('status')->default(true);
+            $table->string('backtowork')->default("21 Января");
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();

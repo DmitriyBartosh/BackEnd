@@ -19,8 +19,7 @@ class UserCollection extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'design_admin' => $this->hasRole('Design Expert'),
-            'frontend_admin' => $this->hasRole('Frontend Expert'),
+            'expert' => $this->expert,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }

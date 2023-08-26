@@ -5,62 +5,37 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreExpertRequest;
 use App\Http\Requests\UpdateExpertRequest;
 use App\Models\Expert;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ExpertController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function getExpert()
     {
-        //
+        $user = Auth::user();
+        $expert = $user->expert;
+
+        return response()->json([
+            'expert' => $expert
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function editExpert(Request $request)
     {
-        //
-    }
+        $user = Auth::user();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreExpertRequest $request)
-    {
-        //
-    }
+        $admin = $user->expert;
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Expert $expert)
-    {
-        //
-    }
+        $admin->status = $request->status;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Expert $expert)
-    {
-        //
-    }
+        if ($request->backtowork) {
+            $admin->backtowork = $request->backtowork;
+        } else {
+            $admin->backtowork = '1 января';
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateExpertRequest $request, Expert $expert)
-    {
-        //
-    }
+        $admin->save();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Expert $expert)
-    {
-        //
+        return response()->json(['message' => "Статус эксперта изменен!"], 200);
     }
 }

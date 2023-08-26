@@ -51,7 +51,7 @@ class User extends Authenticatable
         return $this->hasMany(Works::class)->select('id', 'direction', 'theme', 'name', 'link');
     }
 
-    public function settings()
+    public function expert()
     {
         return $this->hasOne(Expert::class);
     }

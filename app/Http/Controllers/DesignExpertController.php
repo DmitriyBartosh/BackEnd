@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\UserDesignCollection;
 use App\Models\Design;
 use App\Models\User;
+use App\Models\Works;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -49,15 +50,12 @@ class DesignExpertController extends Controller
         ]);
     }
 
-    public function works()
+    public function getAllWorks($direction)
     {
-        $works = Design::select('user_id', 'polygraphy', 'socialmedia', 'poster', 'logo')
-            ->with('user:id,name')
-            ->get();
-
+        $works = Works::with('user')->where('direction', $direction)->get();
 
         return response()->json([
-            'links' => $works
+            'works' => $works
         ]);
     }
 }

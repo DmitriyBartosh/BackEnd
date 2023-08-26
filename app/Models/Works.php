@@ -33,4 +33,9 @@ class Works extends Model
         'name' => 'string',
         'link' => 'string'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id')->select('id', 'name', 'email');
+    }
 }

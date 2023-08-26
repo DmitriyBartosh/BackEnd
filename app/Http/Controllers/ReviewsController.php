@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreReviewsRequest;
 use App\Http\Requests\UpdateReviewsRequest;
+use App\Models\Expert;
+use Spatie\Permission\Models\Role;
 use App\Models\Reviews;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -60,6 +62,17 @@ class ReviewsController extends Controller
 
         return response()->json([
             'works' => $works
+        ]);
+    }
+
+    public function allExperts(Request $request)
+    {
+        $direction = $request->direction;
+
+        $role = Expert::where('direction', $direction)->get();
+
+        return response()->json([
+            'experts' => $role,
         ]);
     }
 }
