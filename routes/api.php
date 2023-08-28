@@ -48,9 +48,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('works/edit', [WorksController::class, 'editWorks']);
     Route::post('works/delete', [WorksController::class, 'deleteWorks']);
 
-    Route::get('review/allexperts', [ReviewsController::class, 'allExperts']);
-    Route::put('review/add', [ReviewsController::class, 'addWorks']);
-    Route::get('review/works', [ReviewsController::class, 'allWorksForUser']);
+    Route::get('review/{direction}/allexperts', [ReviewsController::class, 'allExperts']);
+    Route::post('review/add', [ReviewsController::class, 'addWorks']);
+    Route::get('review/works', [ReviewsController::class, 'allWorksOnReview']);
 });
 
 // Добавлять или удалять администраторов для супер админа
@@ -65,6 +65,7 @@ Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
 // Для Экспертов по дизайну
 Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert|Photo Expert'])->group(function () {
     Route::get('expert/get', [ExpertController::class, 'getExpert']);
+    Route::get('expert/allworks', [ExpertController::class, 'getAllWorks']);
     Route::post('expert/edit', [ExpertController::class, 'editExpert']);
 
     Route::get('admin/allworks/{direction}', [DesignExpertController::class, 'getAllWorks']);

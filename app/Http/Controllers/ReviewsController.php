@@ -16,47 +16,32 @@ class ReviewsController extends Controller
     public function addWorks(Request $request)
     {
         $user = Auth::user();
+
         $user_id = $user->id;
         $expert_id = $request->expert_id;
+
         $works = $request->works;
 
         foreach ($works as $workData) {
-            $existingWorks = Reviews::where('user_id', $user_id)
-                ->where('theme', $workData['theme'])
-                ->where('name', $workData['name'])
-                ->first();
+            $work = new Reviews();
 
-            if ($existingWorks) {
-                // Если запись с id/тема/название тз уже есть, то перезаписываем ссылку
-                $existingWorks->expert_id = $expert_id;
-                $existingWorks->link = $workData['link'];
+            $work->user_id = $user_id;
+            $work->expert_id = $expert_id;
+            $work->work_id = $workData['id'];
 
-                $existingWorks->save();
-            } else {
-                // Если запись новая
-                $work = new Reviews();
-
-                $work->user_id = $user_id;
-                $work->expert_id = $expert_id;
-                $work->theme = $workData['theme'];
-                $work->name = $workData['name'];
-                $work->link = $workData['link'];
-
-                $work->save();
-            }
+            $work->save();
         }
 
-        return response()->json([
-            'status' => 'success'
-        ]);
+        return response()->json(['message' => 'Работы добавлены для рецензирования!'], 200);
     }
 
-    public function allWorksForUser()
+    public function allWorksOnReview()
     {
         $user = Auth::user();
+        $userId = $user->id;
 
-        $works = $user->work_under_review()
-            ->with('expert')
+        $works = Reviews::where('user_id', $userId)
+            ->with('expert', 'work')
             ->get();
 
 
@@ -65,14 +50,12 @@ class ReviewsController extends Controller
         ]);
     }
 
-    public function allExperts(Request $request)
+    public function allExperts($direction)
     {
-        $direction = $request->direction;
-
-        $role = Expert::where('direction', $direction)->get();
+        $experts = Expert::where('direction', $direction)->get();
 
         return response()->json([
-            'experts' => $role,
+            'experts' => $experts
         ]);
     }
 }

@@ -41,6 +41,16 @@ class Reviews extends Model
 
     public function expert()
     {
-        return $this->belongsTo(Expert::class, 'expert_id')->select('id', 'avatar');
+        return $this->belongsTo(Expert::class, 'expert_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id')->select('id', 'name', 'email');
+    }
+
+    public function work()
+    {
+        return $this->belongsTo(Works::class, 'work_id');
     }
 }

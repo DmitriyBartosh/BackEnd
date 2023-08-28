@@ -56,8 +56,8 @@ class User extends Authenticatable
         return $this->hasOne(Expert::class);
     }
 
-    public function work_under_review()
+    public function work_on_review()
     {
-        return $this->hasMany(Reviews::class)->select('id', 'expert_id', 'theme', 'name', 'link', 'status', 'message_failure', 'message_after_review');
+        return $this->hasMany(Reviews::class);
     }
 }
