@@ -17,6 +17,7 @@ class Reviews extends Model
     protected $fillable = [
         'user_id',
         'expert_id',
+        'transaction_id',
         'theme',
         'name',
         'link',

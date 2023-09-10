@@ -7,10 +7,9 @@ use App\Http\Controllers\Auth\YandexAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\ChangeDirectionController;
-use App\Http\Controllers\DesignController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\DesignExpertController;
 use App\Http\Controllers\ExpertController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewsController;
 use App\Http\Controllers\WorksController;
 
@@ -50,7 +49,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('review/{direction}/allexperts', [ReviewsController::class, 'allExperts']);
     Route::post('review/add', [ReviewsController::class, 'addWorks']);
+    Route::delete('review/delete/{id}', [ReviewsController::class, 'deleteReview']);
     Route::get('review/works', [ReviewsController::class, 'allWorksOnReview']);
+    Route::post('review/fix', [ReviewsController::class, 'fixWork']);
+    Route::post('review/revision', [ReviewsController::class, 'revisionWork']);
+
+    Route::get('review/payment/{id}', [ReviewsController::class, 'checkPayment']);
+    Route::post('review/payment/get', [ReviewsController::class, 'getPayment']);
 });
 
 // Добавлять или удалять администраторов для супер админа
@@ -64,14 +69,22 @@ Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
 
 // Для Экспертов по дизайну
 Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert|Photo Expert'])->group(function () {
+    Route::get('expert/allworks/{direction}', [ExpertController::class, 'getAllWorks']);
+
     Route::get('expert/get', [ExpertController::class, 'getExpert']);
-    Route::get('expert/allworks', [ExpertController::class, 'getAllWorks']);
+    Route::get('expert/reviews', [ExpertController::class, 'getAllReviews']);
     Route::post('expert/edit', [ExpertController::class, 'editExpert']);
 
-    Route::get('admin/allworks/{direction}', [DesignExpertController::class, 'getAllWorks']);
-    Route::put('admin/design/editsettings', [DesignExpertController::class, 'editProfileInfo']);
+    Route::post('expert/work/verified', [ExpertController::class, 'workVerified']);
+    Route::post('expert/work/fail', [ExpertController::class, 'workFail']);
+    Route::post('expert/work/review', [ExpertController::class, 'workReview']);
+    Route::post('expert/work/revision', [ExpertController::class, 'workRevision']);
+    Route::post('expert/work/notcounted', [ExpertController::class, 'workNotCounted']);
 });
 
+Route::get('payment', [PaymentController::class, 'createPayment']);
+Route::get('payment/get', [PaymentController::class, 'getPayments']);
+Route::get('payment/all', [PaymentController::class, 'allPayments']);
 
 Route::get('auth/vk', [VkAuthController::class, 'redirectToAuth']);
 Route::get('auth/vk/callback', [VkAuthController::class, 'handleAuthCallback']);

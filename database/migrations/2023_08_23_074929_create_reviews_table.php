@@ -18,16 +18,23 @@ return new class extends Migration
             $table->unsignedBigInteger('expert_id');
             $table->unsignedBigInteger('work_id');
 
-            $table->string('status')->default('link checking');
+            $table->string('transaction_id')->nullable();
 
-            $table->string('message_failure')->nullable();
+            $table->string('status')->default('checking');
 
-            $table->string('link_after_review')->nullable();
-            $table->text('message_after_review')->nullable();
+            $table->text('message_failure')->nullable();
+            $table->text('message_revision')->nullable();
+            $table->text('message_review')->nullable();
+            $table->text('message_notcounted')->nullable();
+
+            $table->text('user_comment')->nullable();
+
+            $table->string('link')->nullable();
+
 
             $table->foreign('work_id')->references('id')->on('works');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('expert_id')->references('id')->on('experts');
+            $table->foreign('expert_id')->references('id')->on('experts')->onDelete('cascade');;
 
             $table->timestamps();
         });

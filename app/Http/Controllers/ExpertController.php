@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreExpertRequest;
-use App\Http\Requests\UpdateExpertRequest;
 use App\Models\Expert;
 use App\Models\Reviews;
+use App\Models\Works;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,12 +39,14 @@ class ExpertController extends Controller
         return response()->json(['message' => "Статус эксперта изменен!"], 200);
     }
 
-    public function getAllWorks()
+    public function getAllReviews()
     {
         $user = Auth::user();
         $userId = $user->id;
 
-        $works = Reviews::where('expert_id', $userId)
+        $expertId = Expert::where('user_id', $userId)->value('id');
+
+        $works = Reviews::where('expert_id', $expertId)
             ->with('user', 'work')
             ->get();
 
@@ -53,5 +54,89 @@ class ExpertController extends Controller
         return response()->json([
             'works' => $works
         ]);
+    }
+
+    public function getAllWorks($direction)
+    {
+        $works = Works::with('user')->where('direction', $direction)->get();
+
+        return response()->json([
+            'works' => $works
+        ]);
+    }
+
+    public function workVerified(Request $request)
+    {
+        $reviewId = $request->id;
+
+        $reviewWork = Reviews::find($reviewId);
+
+        $reviewWork->status = 'verified';
+
+        $reviewWork->save();
+
+        return response()->json(['message' => "Работы успешно прошла проверку!"], 200);
+    }
+
+    public function workFail(Request $request)
+    {
+        $reviewId = $request->id;
+        $message = $request->message;
+
+        $reviewWork = Reviews::find($reviewId);
+
+        $reviewWork->status = 'fail';
+        $reviewWork->message_failure = $message;
+
+        $reviewWork->save();
+
+        return response()->json(['message' => "Работы успешно прошла проверку!"], 200);
+    }
+    // Новое
+    public function workReview(Request $request)
+    {
+        $reviewId = $request->id;
+        $message = $request->message;
+
+        $reviewWork = Reviews::find($reviewId);
+        $work = Works::find($reviewWork->work_id);
+
+        $reviewWork->status = 'complete';
+        $reviewWork->link = $work->link;
+        $reviewWork->message_review = $message;
+
+        $reviewWork->save();
+
+        return response()->json(['message' => "Ревью успешно добавлено!"], 200);
+    }
+
+    public function workRevision(Request $request)
+    {
+        $reviewId = $request->id;
+        $message = $request->message;
+
+        $reviewWork = Reviews::find($reviewId);
+
+        $reviewWork->status = 'revision';
+        $reviewWork->message_revision = $message;
+
+        $reviewWork->save();
+
+        return response()->json(['message' => "Работы отправлена на доработку!"], 200);
+    }
+
+    public function workNotCounted(Request $request)
+    {
+        $reviewId = $request->id;
+        $message = $request->message;
+
+        $reviewWork = Reviews::find($reviewId);
+
+        $reviewWork->status = 'complete';
+        $reviewWork->message_failure = $message;
+
+        $reviewWork->save();
+
+        return response()->json(['message' => "Работы успешно прошла проверку!"], 200);
     }
 }
