@@ -71,6 +71,10 @@ class ExpertController extends Controller
 
         $reviewWork = Reviews::find($reviewId);
 
+        // Сохраняем ссылку
+        $work = Works::find($reviewWork->work_id);
+        $reviewWork->link = $work->link;
+
         $reviewWork->status = 'verified';
 
         $reviewWork->save();
@@ -90,25 +94,9 @@ class ExpertController extends Controller
 
         $reviewWork->save();
 
-        return response()->json(['message' => "Работы успешно прошла проверку!"], 200);
+        return response()->json(['message' => "Не рабочая ссылка или работу нужно дополнить!"], 200);
     }
-    // Новое
-    public function workReview(Request $request)
-    {
-        $reviewId = $request->id;
-        $message = $request->message;
 
-        $reviewWork = Reviews::find($reviewId);
-        $work = Works::find($reviewWork->work_id);
-
-        $reviewWork->status = 'complete';
-        $reviewWork->link = $work->link;
-        $reviewWork->message_review = $message;
-
-        $reviewWork->save();
-
-        return response()->json(['message' => "Ревью успешно добавлено!"], 200);
-    }
 
     public function workRevision(Request $request)
     {
@@ -125,7 +113,8 @@ class ExpertController extends Controller
         return response()->json(['message' => "Работы отправлена на доработку!"], 200);
     }
 
-    public function workNotCounted(Request $request)
+    // Работа зачтена
+    public function workReview(Request $request)
     {
         $reviewId = $request->id;
         $message = $request->message;
@@ -133,10 +122,26 @@ class ExpertController extends Controller
         $reviewWork = Reviews::find($reviewId);
 
         $reviewWork->status = 'complete';
-        $reviewWork->message_failure = $message;
+        $reviewWork->message_review = $message;
 
         $reviewWork->save();
 
-        return response()->json(['message' => "Работы успешно прошла проверку!"], 200);
+        return response()->json(['message' => "Ревью успешно добавлено!"], 200);
+    }
+
+    // Работа не зачтена после второй итерации
+    public function workNotCounted(Request $request)
+    {
+        $reviewId = $request->id;
+        $message = $request->message;
+
+        $reviewWork = Reviews::find($reviewId);
+
+        $reviewWork->status = 'notcounted';
+        $reviewWork->message_notcounted = $message;
+
+        $reviewWork->save();
+
+        return response()->json(['message' => "Работа прошла проверку, но не зачтена."], 200);
     }
 }
