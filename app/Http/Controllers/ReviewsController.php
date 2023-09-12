@@ -151,7 +151,7 @@ class ReviewsController extends Controller
                     'work' => $work->name,
                     'link' => $work->link
                 ),
-                'save_payment_method' => true,
+                'payment_method_data' => $request->method,
                 'capture' => false,
                 'description' => 'Рецензия на работу «' . $work->name . "»" . " от эксперта " . $expert->name,
             ),
@@ -160,8 +160,6 @@ class ReviewsController extends Controller
 
         $review->transaction_id = $payment->id;
         $review->save();
-
-
 
         return response()->json([
             'url' => $payment->confirmation->confirmation_url
@@ -187,6 +185,7 @@ class ReviewsController extends Controller
 
             if ($payment->status === 'canceled') {
                 $review->transaction_id = null;
+                $review->save();
 
                 return response()->json([
                     'message' => 'Платеж не действителен'
@@ -195,6 +194,7 @@ class ReviewsController extends Controller
 
             if ($payment->status === 'pending') {
                 return response()->json([
+                    'message' => 'Платеж уже создан',
                     'url' => $payment->confirmation->confirmation_url
                 ]);
             }

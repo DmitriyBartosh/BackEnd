@@ -52,16 +52,4 @@ class WorksController extends Controller
 
         return response()->json(['message' => 'Работа успешно изменена!'], 200);
     }
-
-    public function deleteWorks(Request $request)
-    {
-        $user = Auth::user();
-        $userId = $user->id;
-        $workId = (int) $request->id;
-        $work = Works::where('user_id', $userId)->findOrFail($workId);
-
-        $work->delete();
-
-        return response()->json(['message' => 'Работа успешно удалена!'], 200);
-    }
 }

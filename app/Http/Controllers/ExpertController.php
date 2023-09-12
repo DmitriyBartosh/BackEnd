@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Expert;
 use App\Models\Reviews;
 use App\Models\Works;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use YooKassa\Client;
 
 class ExpertController extends Controller
 {
+    private function getClient(): Client
+    {
+        $client = new Client();
+        $client->setAuth(config('services.yookassa.client_id'), config('services.yookassa.client_key'));
+
+        return $client;
+    }
+
     public function getExpert()
     {
         $user = Auth::user();
@@ -105,6 +115,58 @@ class ExpertController extends Controller
 
         $reviewWork = Reviews::find($reviewId);
 
+        // Подтверждаем платеж
+        $client = $this->getClient();
+        $payment = $client->getPaymentInfo($reviewWork->transaction_id);
+
+        if ($payment->status === "waiting_for_capture") {
+
+            // Получаем текущую дату и время
+            $currentDate = Carbon::now();
+
+            // Получаем дату создания платежа
+            $createdAt = Carbon::parse($payment->created_at);
+
+            // Проверяем, был ли платеж создан не позже трех дней назад
+            if ($createdAt->diffInDays($currentDate) <= 3) {
+                // Списываем деньги
+                $idempotenceKey = uniqid('', true);
+                $client->capturePayment(
+                    array(
+                        'amount' => $payment->amount,
+                    ),
+                    $payment->id,
+                    $idempotenceKey
+                );
+
+                $reviewWork->status = 'revision';
+                $reviewWork->message_revision = $message;
+
+                $reviewWork->save();
+
+                return response()->json([
+                    'message' => 'Платеж подтвержден и работа отправлена на доработку'
+                ], 200);
+            } else {
+                // Возвращаем платеж
+                $idempotenceKey = uniqid('', true);
+
+                $client->cancelPayment(
+                    $payment->id,
+                    $idempotenceKey
+                );
+
+                $reviewWork->status = 'revision';
+                $reviewWork->message_revision = $message;
+
+                $reviewWork->save();
+
+                return response()->json([
+                    'message' => 'Платеж был возвращен и работа отправлена на доработку'
+                ], 200);
+            }
+        }
+
         $reviewWork->status = 'revision';
         $reviewWork->message_revision = $message;
 
@@ -121,12 +183,64 @@ class ExpertController extends Controller
 
         $reviewWork = Reviews::find($reviewId);
 
+        // Подтверждаем платеж
+        $client = $this->getClient();
+        $payment = $client->getPaymentInfo($reviewWork->transaction_id);
+
+        if ($payment->status === "waiting_for_capture") {
+
+            // Получаем текущую дату и время
+            $currentDate = Carbon::now();
+
+            // Получаем дату создания платежа
+            $createdAt = Carbon::parse($payment->created_at);
+
+            // Проверяем, был ли платеж создан не позже трех дней назад
+            if ($createdAt->diffInDays($currentDate) <= 3) {
+                // Списываем деньги
+                $idempotenceKey = uniqid('', true);
+                $client->capturePayment(
+                    array(
+                        'amount' => $payment->amount,
+                    ),
+                    $payment->id,
+                    $idempotenceKey
+                );
+
+                $reviewWork->status = 'complete';
+                $reviewWork->message_review = $message;
+
+                $reviewWork->save();
+
+                return response()->json([
+                    'message' => 'Платеж подтвержден'
+                ], 200);
+            } else {
+                // Возвращаем платеж
+                $idempotenceKey = uniqid('', true);
+
+                $client->cancelPayment(
+                    $payment->id,
+                    $idempotenceKey
+                );
+
+                $reviewWork->status = 'complete';
+                $reviewWork->message_review = $message;
+
+                $reviewWork->save();
+
+                return response()->json([
+                    'message' => 'Платеж был возвращен'
+                ], 200);
+            }
+        }
+
         $reviewWork->status = 'complete';
         $reviewWork->message_review = $message;
 
         $reviewWork->save();
 
-        return response()->json(['message' => "Ревью успешно добавлено!"], 200);
+        return response()->json(['message' => "!"], 200);
     }
 
     // Работа не зачтена после второй итерации

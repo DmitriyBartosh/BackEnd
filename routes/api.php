@@ -45,7 +45,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('works/all', [WorksController::class, 'getWorks']);
     Route::post('works/add', [WorksController::class, 'addWorks']);
     Route::post('works/edit', [WorksController::class, 'editWorks']);
-    Route::post('works/delete', [WorksController::class, 'deleteWorks']);
 
     Route::get('review/{direction}/allexperts', [ReviewsController::class, 'allExperts']);
     Route::post('review/add', [ReviewsController::class, 'addWorks']);
