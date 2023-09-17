@@ -38,10 +38,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ]);
     });
 
-    // Скрывать или показывать направления
-    Route::post('direction/change', [ChangeDirectionController::class, 'ChangeDirection']);
-    Route::get('direction/status', [ChangeDirectionController::class, 'getDirections']);
-
     Route::get('works/all', [WorksController::class, 'getWorks']);
     Route::post('works/add', [WorksController::class, 'addWorks']);
     Route::post('works/edit', [WorksController::class, 'editWorks']);

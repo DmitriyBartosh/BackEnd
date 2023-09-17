@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
 
-            $table->json('direction')->nullable();
+            $table->json('telegram_chat')->nullable();
 
             $table->rememberToken();
             $table->timestamps();

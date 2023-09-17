@@ -24,7 +24,7 @@ class User extends Authenticatable
         'vkontakte_id',
         'yandex_id',
         'google_id',
-        'direction'
+        'telegram_chat'
     ];
 
     /**
@@ -48,7 +48,7 @@ class User extends Authenticatable
 
     public function allworks()
     {
-        return $this->hasMany(Works::class)->select('id', 'direction', 'theme', 'name', 'link');
+        return $this->hasMany(Works::class)->select('id', 'theme', 'name', 'link');
     }
 
     public function expert()
