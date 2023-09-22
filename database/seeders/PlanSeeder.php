@@ -13,10 +13,20 @@ class PlanSeeder extends Seeder
      */
     public function run(): void
     {
-        $designPlan = Plan::create([
-            'name'             => 'design',
-            'periodicity_type' => 'Month',
-            'periodicity'      => 1,
-        ]);
+
+        $plans = [
+            [
+                'name' => 'design',
+                'periodicity' => 30,
+            ],
+            [
+                'name' => 'frontend',
+                'periodicity' => 30,
+            ]
+        ];
+
+        foreach ($plans as $plan) {
+            Plan::create($plan);
+        }
     }
 }

@@ -18,6 +18,7 @@ class Subscribe extends Model
         'user_id',
         'transaction_id',
         'plan_id',
+        'transaction_status',
         'started_at',
         'expired_at',
     ];
@@ -28,8 +29,15 @@ class Subscribe extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'started_at' => 'string',
-        'expired_at' => 'unsignedInteger',
+        'transaction_id' => 'string',
+        'transaction_status' => 'string',
+        'started_at' => 'date',
+        'expired_at' => 'date',
         'periodicity_type' => 'string'
     ];
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
 }

@@ -143,7 +143,7 @@ class ReviewsController extends Controller
                 ),
                 'confirmation' => array(
                     'type' => 'redirect',
-                    'return_url' => config('app.frontend_url') . "/profile",
+                    'return_url' => config('app.frontend_url') . "/portfolio",
                 ),
                 'metadata' => array(
                     'expert' => $expert->name,

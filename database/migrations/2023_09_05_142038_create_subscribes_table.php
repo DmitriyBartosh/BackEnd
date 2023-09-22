@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
 
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('transaction_id');
+            $table->string('transaction_id');
             $table->unsignedBigInteger('plan_id');
 
+            $table->string('transaction_status');
             $table->date('started_at');
-            $table->timestamp('expired_at')->nullable();
+            $table->date('expired_at');
 
             $table->timestamps();
 

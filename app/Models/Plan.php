@@ -17,7 +17,6 @@ class Plan extends Model
     protected $fillable = [
         'name',
         'periodicity',
-        'periodicity_type',
     ];
 
     /**
@@ -27,6 +26,6 @@ class Plan extends Model
      */
     protected $casts = [
         'name' => 'string',
-        'periodicity_type' => 'string'
+        'periodicity' => 'integer'
     ];
 }

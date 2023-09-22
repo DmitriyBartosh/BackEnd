@@ -16,7 +16,6 @@ return new class extends Migration
 
             $table->string('name');
             $table->unsignedInteger('periodicity');
-            $table->string('periodicity_type');
 
             $table->timestamps();
         });

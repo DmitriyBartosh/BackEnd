@@ -48,7 +48,12 @@ class User extends Authenticatable
 
     public function allworks()
     {
-        return $this->hasMany(Works::class)->select('id', 'theme', 'name', 'link');
+        return $this->hasMany(Works::class)->select('id', 'theme', 'direction', 'name', 'link');
+    }
+
+    public function allsubscribes()
+    {
+        return $this->hasMany(Subscribe::class)->with('plan');
     }
 
     public function expert()

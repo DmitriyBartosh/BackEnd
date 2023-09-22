@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ExpertController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewsController;
+use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\WorksController;
 
 /*
@@ -41,6 +42,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('works/all', [WorksController::class, 'getWorks']);
     Route::post('works/add', [WorksController::class, 'addWorks']);
     Route::post('works/edit', [WorksController::class, 'editWorks']);
+
+    Route::post('subscribe/add', [SubscribeController::class, 'addSubscribe']);
+    Route::get('subscribe/payment/{id}', [SubscribeController::class, 'checkPayment']);
+    Route::get('subscribe/all', [SubscribeController::class, 'allSubscribes']);
 
     Route::get('review/{direction}/allexperts', [ReviewsController::class, 'allExperts']);
     Route::post('review/add', [ReviewsController::class, 'addWorks']);
