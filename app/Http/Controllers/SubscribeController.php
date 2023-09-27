@@ -75,9 +75,12 @@ class SubscribeController extends Controller
         ]);
     }
 
-    public function checkPayment($id)
+    public function checkPayment($subscribe)
     {
-        $subscribe = Subscribe::find($id);
+        // Если платеж уже получил статус Успешно, то не проверять его повторно
+        if ($subscribe->transaction_status === 'succeeded') {
+            return;
+        };
 
         if ($subscribe->transaction_id) {
             $client = $this->getClient();
@@ -87,28 +90,21 @@ class SubscribeController extends Controller
                 $subscribe->transaction_status = 'succeeded';
                 $subscribe->save();
 
-                return response()->json([
-                    'message' => 'Подписка оплачена'
-                ]);
+                return;
             }
 
             if ($payment->status === 'canceled') {
                 $subscribe->transaction_status = 'canceled';
                 $subscribe->save();
 
-                return response()->json([
-                    'message' => 'Платеж не действителен'
-                ]);
+                return;
             }
 
             if ($payment->status === 'pending') {
                 $subscribe->transaction_status = 'pending';
                 $subscribe->save();
 
-                return response()->json([
-                    'message' => 'Платеж уже создан',
-                    'url' => $payment->confirmation->confirmation_url
-                ]);
+                return $payment->confirmation->confirmation_url;
             }
         }
 
@@ -125,10 +121,20 @@ class SubscribeController extends Controller
         $user = Auth::user();
         $data = $user->allsubscribes;
 
+        // Проверяем, есть ли данные в $data
+        if ($data->isEmpty()) {
+            return response()->json([
+                'subscribes' => []
+            ]);
+        }
+
         // Получаем текущую дату
         $now = Carbon::now();
 
         foreach ($data as $item) {
+            // Проверяем статус платежа
+            $checkPayment = $this->checkPayment($item);
+
             // Получаем дату окончания абонемента из базы данных
             $endDate = Carbon::parse($item['expired_at']);
 
@@ -151,6 +157,11 @@ class SubscribeController extends Controller
                 'transaction_id' => $item['transaction_id'],
                 'transaction_status' => $item['transaction_status'],
             ];
+
+            // если функция checkPayment вернула url, то добавить поле redirect_url для добавление ссылки в кнопку завершения платежа
+            if (isset($checkPayment)) {
+                $subscribes[count($subscribes) - 1]['redirect_url'] = $checkPayment;
+            }
         }
 
         return response()->json([
