@@ -27,6 +27,8 @@ return new class extends Migration
             $table->text('message_review')->nullable();
             $table->text('message_notcounted')->nullable();
 
+            $table->date('time_for_revision')->nullable();
+
             $table->text('user_comment')->nullable();
 
             $table->string('link')->nullable();
