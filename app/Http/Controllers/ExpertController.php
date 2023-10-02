@@ -107,7 +107,7 @@ class ExpertController extends Controller
         return response()->json(['message' => "Не рабочая ссылка или работу нужно дополнить!"], 200);
     }
 
-
+    // Отправить на доработку
     public function workRevision(Request $request)
     {
         $reviewId = $request->id;
@@ -115,14 +115,19 @@ class ExpertController extends Controller
 
         $reviewWork = Reviews::find($reviewId);
 
+        // Получаем текущую дату и время
+        $currentDate = Carbon::now();
+
+        // Добавляем пять дней к текущей дате
+        $deadline = $currentDate->addDays(5);
+
         // Подтверждаем платеж
         $client = $this->getClient();
         $payment = $client->getPaymentInfo($reviewWork->transaction_id);
 
         if ($payment->status === "waiting_for_capture") {
 
-            // Получаем текущую дату и время
-            $currentDate = Carbon::now();
+
 
             // Получаем дату создания платежа
             $createdAt = Carbon::parse($payment->created_at);
@@ -139,6 +144,8 @@ class ExpertController extends Controller
                     $idempotenceKey
                 );
 
+                // Записываем дату до которой можно сдать работу
+                $reviewWork->time_for_revision = $deadline;
                 $reviewWork->status = 'revision';
                 $reviewWork->message_revision = $message;
 
@@ -156,6 +163,8 @@ class ExpertController extends Controller
                     $idempotenceKey
                 );
 
+                // Записываем дату до которой можно сдать работу
+                $reviewWork->time_for_revision = $deadline;
                 $reviewWork->status = 'revision';
                 $reviewWork->message_revision = $message;
 
@@ -167,6 +176,8 @@ class ExpertController extends Controller
             }
         }
 
+        // Записываем дату до которой можно сдать работу
+        $reviewWork->time_for_revision = $deadline;
         $reviewWork->status = 'revision';
         $reviewWork->message_revision = $message;
 
