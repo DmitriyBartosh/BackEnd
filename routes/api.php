@@ -10,9 +10,11 @@ use App\Http\Controllers\ChangeDirectionController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ExpertController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PromocodeController;
 use App\Http\Controllers\ReviewsController;
 use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\WorksController;
+use App\Models\Promocode;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +57,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('review/payment/{id}', [ReviewsController::class, 'checkPayment']);
     Route::post('review/payment/get', [ReviewsController::class, 'getPayment']);
+
+    Route::post('promo/activate', [PromocodeController::class, 'activatePromo']);
 });
 
 // Добавлять или удалять администраторов для супер админа
@@ -64,6 +68,9 @@ Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
     Route::post('admin/expert/add', [AdminController::class, 'addExpert']);
     Route::post('admin/expert/edit', [AdminController::class, 'editExpert']);
     Route::post('admin/expert/delete', [AdminController::class, 'deleteDesign']);
+
+    Route::post('promo/add', [PromocodeController::class, 'generatePromoCodes']);
+    Route::get('promo/all', [PromocodeController::class, 'getAllPromoCodes']);
 });
 
 // Для Экспертов по дизайну
@@ -79,6 +86,7 @@ Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert|Photo Exp
     Route::post('expert/work/review', [ExpertController::class, 'workReview']);
     Route::post('expert/work/revision', [ExpertController::class, 'workRevision']);
     Route::post('expert/work/notcounted', [ExpertController::class, 'workNotCounted']);
+    Route::post('expert/work/extend', [ExpertController::class, 'extendDeadline']);
 });
 
 Route::get('payment', [PaymentController::class, 'createPayment']);

@@ -21,6 +21,7 @@ class Subscribe extends Model
         'transaction_status',
         'started_at',
         'expired_at',
+        'active'
     ];
 
     /**
@@ -33,6 +34,7 @@ class Subscribe extends Model
         'transaction_status' => 'string',
         'started_at' => 'date',
         'expired_at' => 'date',
+        'active' => 'boolean',
         'periodicity_type' => 'string'
     ];
 

@@ -6,6 +6,7 @@ use App\Models\Expert;
 use App\Models\Reviews;
 use App\Models\Transaction;
 use App\Models\Works;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use YooKassa\Client;
@@ -52,6 +53,20 @@ class ReviewsController extends Controller
         $works = Reviews::where('user_id', $userId)
             ->with('expert', 'work')
             ->get();
+
+        // Проверяем каждую работу
+        foreach ($works as $work) {
+            // Если рецензия отправлена на доработку, проверим не истек ли дедлайн на доработку
+            if ($work->status === 'revision') {
+                $timeForRevision = Carbon::parse($work->time_for_revision);
+
+                // Если дата в поле time_for_revision прошла, устанавливаем статус "test"
+                if ($timeForRevision->isPast()) {
+                    $work->status = "overdue";
+                    $work->save();
+                }
+            }
+        }
 
 
         return response()->json([

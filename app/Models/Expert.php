@@ -39,6 +39,6 @@ class Expert extends Model
         'slug' => 'string',
         'direction' => 'string',
         'price' => 'json',
-        'backtowork' => 'string'
+        'backtowork' => 'date'
     ];
 }

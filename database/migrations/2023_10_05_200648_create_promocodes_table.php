@@ -11,21 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('experts', function (Blueprint $table) {
+        Schema::create('promocodes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->nullable();
 
-            $table->string('avatar')->default('/images/avatar/default.jpg');
             $table->string('name');
-            $table->string('about');
-            $table->string('slug');
             $table->string('direction');
-            $table->json('price')->nullable();
+            $table->unsignedInteger('periodicity');
+            $table->date('expired_at');
+            $table->string('code');
 
-            $table->boolean('status')->default(true);
-            $table->date('backtowork')->default('2024-01-21');
+            $table->string('status')->default('active');
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
             $table->timestamps();
         });
     }
@@ -35,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('experts');
+        Schema::dropIfExists('promocodes');
     }
 };

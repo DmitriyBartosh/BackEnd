@@ -17,10 +17,12 @@ class PlanSeeder extends Seeder
         $plans = [
             [
                 'name' => 'design',
+                'title' => 'графический дизайн',
                 'periodicity' => 30,
             ],
             [
                 'name' => 'frontend',
+                'title' => 'фронтенд разработка',
                 'periodicity' => 30,
             ]
         ];

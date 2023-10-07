@@ -5,19 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Plan extends Model
+class Promocode extends Model
 {
     use HasFactory;
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'name',
-        'title',
+        'direction',
         'periodicity',
+        'expired_at',
+        'code',
+        'status'
     ];
 
     /**
@@ -27,7 +30,15 @@ class Plan extends Model
      */
     protected $casts = [
         'name' => 'string',
-        'title' => 'string',
-        'periodicity' => 'integer'
+        'direction' => 'string',
+        'periodicity' => 'integer',
+        'expired_at' => 'date',
+        'code' => 'string',
+        'status' => 'string'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id')->select('id', 'name', 'email');
+    }
 }

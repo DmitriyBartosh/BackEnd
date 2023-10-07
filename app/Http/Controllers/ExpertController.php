@@ -60,6 +60,20 @@ class ExpertController extends Controller
             ->with('user', 'work')
             ->get();
 
+        // Проверяем каждую работу
+        foreach ($works as $work) {
+            // Если рецензия отправлена на доработку, проверим не истек ли дедлайн на доработку
+            if ($work->status === 'revision') {
+                $timeForRevision = Carbon::parse($work->time_for_revision);
+
+                // Если дата в поле time_for_revision прошла, устанавливаем статус "test"
+                if ($timeForRevision->isPast()) {
+                    $work->status = "overdue";
+                    $work->save();
+                }
+            }
+        }
+
 
         return response()->json([
             'works' => $works
@@ -268,5 +282,29 @@ class ExpertController extends Controller
         $reviewWork->save();
 
         return response()->json(['message' => "Работа прошла проверку, но не зачтена."], 200);
+    }
+
+    // Продлить дедлайн на 5 дней
+    public function extendDeadline(Request $request)
+    {
+        $reviewId = $request->id;
+
+        // Получаем текущую дату и время
+        $currentDate = Carbon::now();
+
+        // Добавляем пять дней к текущей дате
+        $deadline = $currentDate->addDays(5);
+
+        $reviewWork = Reviews::find($reviewId);
+        $reviewWork->status = 'revision';
+
+        // Записываем дату до которой можно сдать работу
+        $reviewWork->time_for_revision = $deadline;
+
+        $reviewWork->save();
+
+        return response()->json([
+            'message' => 'Сроки доработки работы были продлены на 5 дней'
+        ], 200);
     }
 }

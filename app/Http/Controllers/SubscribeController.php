@@ -88,6 +88,7 @@ class SubscribeController extends Controller
 
             if ($payment->paid) {
                 $subscribe->transaction_status = 'succeeded';
+                $subscribe->active = true;
                 $subscribe->save();
 
                 return;
@@ -139,13 +140,16 @@ class SubscribeController extends Controller
             $endDate = Carbon::parse($item['expired_at']);
 
             // Проверяем активен ли абонемент
-            if ($now <= $endDate && $item['transaction_status'] === 'succeeded') {
+            if ($now <= $endDate && $item['active']) {
                 // Определяем количество дней, оставшихся до конца подписки
                 $daysLeft = $now->diffInDays($item['expired_at']);
                 $isActive = true;
             } else {
                 $daysLeft = 0;
                 $isActive = false;
+
+                $item->active = false;
+                $item->save();
             }
 
             $subscribes[] = [
