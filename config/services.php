@@ -51,5 +51,8 @@ return [
     'yookassa' => [
         'client_id' => env('YOOKASSA_CLIENT_ID'),
         'client_key' => env('YOOKASSA_CLIENT_KEY')
+    ],
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
     ]
 ];

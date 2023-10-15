@@ -6,15 +6,16 @@ use App\Http\Controllers\Auth\VkAuthController;
 use App\Http\Controllers\Auth\YandexAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LogoutController;
-use App\Http\Controllers\ChangeDirectionController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ExpertController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PromocodeController;
 use App\Http\Controllers\ReviewsController;
 use App\Http\Controllers\SubscribeController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WorksController;
-use App\Models\Promocode;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('review/payment/get', [ReviewsController::class, 'getPayment']);
 
     Route::post('promo/activate', [PromocodeController::class, 'activatePromo']);
+
+    Route::get('telegram/get', [UserController::class, 'telegramGetMe']);
 });
 
 // Добавлять или удалять администраторов для супер админа

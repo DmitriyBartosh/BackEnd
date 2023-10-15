@@ -19,6 +19,7 @@ class VkAuthController extends Controller
                 ->stateless()
                 ->scopes([])
                 ->with([
+                    'display' => 'popup',
                     'access_type' => 'offline',
                 ])
                 ->redirect()
