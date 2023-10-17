@@ -11,14 +11,15 @@ class StartCommand extends Command
 
     public function handle()
     {
-        $userData = $this->getUpdate()->message->from;
-        $userId = $userData->id;
-        $first_name = $userData->first_name;
-        $last_name = $userData->last_name;
+        $chatData = $this->getUpdate()->message->from;
+        $chatId = $chatData->id;
+        $first_name = $chatData->first_name;
+        $last_name = $chatData->last_name;
 
         $message = "<b>Привет " . $first_name . " " . $last_name . "!</b>"
             . PHP_EOL .  "Добро пожаловать в Графикси!"
-            . PHP_EOL . 'Для начала скопируй этот ID - ' . '<b>' . $userId . '</b>' . " и добавь его в " . "<a href='" . env('FRONTEND_URL') . "/profile/'>Личном кабинете</a>."
+            . PHP_EOL . "Перейдите по  <b><a href='" . env('FRONTEND_URL') . "/telegram?id=" . $chatId . "'>ссылке на Графикси</a></b> и примените полученный ID."
+            . PHP_EOL . 'Или введите ID - <b>' . $chatId . "</b> вручную."
             . PHP_EOL . 'Так мы сможем отправлять уведомления от экспертов прямо в телеграм!';
 
         $this->replyWithMessage([

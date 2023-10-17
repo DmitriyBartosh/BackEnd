@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Telegram\Bot\Api;
 
 class UserController extends Controller
@@ -19,19 +20,52 @@ class UserController extends Controller
         $this->telegram = $telegram;
     }
 
-    /**
-     * Show the bot information.
-     */
-    public function telegramGetMe()
+    public function getUser()
     {
+        // Информация о пользователе
+        $user = Auth::user();
+        $telegramId = $user->telegram_chat;
 
-        $updates = $this->telegram->getUpdates();
+        if ($telegramId === null) {
+            return response()->json([
+                'name' => $user->name,
+                'email' => $user->email,
+                'telegram' => null
+            ], 200);
+        } else {
+            $telegramUser = $this->telegram->getChat(['chat_id' => $telegramId]);
 
-        $chat_bot = $this->telegram->getMe();
+
+            return response()->json([
+                'name' => $user->name,
+                'email' => $user->email,
+                'telegram' => [
+                    'first_name' => $telegramUser->first_name,
+                    'last_name' => $telegramUser->last_name,
+                    'username' => $telegramUser->username,
+                    'bio' => $telegramUser->bio
+                ]
+            ], 200);
+        }
+    }
+
+    public function addTelegramId(Request $request)
+    {
+        // Информация о пользователе
+        $user = Auth::user();
+
+        $user->telegram_chat = $request->id;
+        $telegramUser = $this->telegram->getChat(['chat_id' => $request->id]);
+
+        $user->save();
 
         return response()->json([
-            'chat_bot' => $chat_bot,
-            'updates' => $updates
+            'user' => [
+                'first_name' => $telegramUser->first_name,
+                'last_name' => $telegramUser->last_name,
+                'username' => $telegramUser->username,
+                'bio' => $telegramUser->bio
+            ]
         ], 200);
     }
 }

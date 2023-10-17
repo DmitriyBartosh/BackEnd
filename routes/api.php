@@ -33,14 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('auth/logout', [LogoutController::class, 'logout']);
 
-    Route::get('user', function (Request $request) {
-        $user = $request->user();
-
-        return response()->json([
-            'name' => $user->name,
-            'email' => $user->email
-        ]);
-    });
+    Route::get('user', [UserController::class, 'getUser']);
 
     Route::get('works/all', [WorksController::class, 'getWorks']);
     Route::post('works/add', [WorksController::class, 'addWorks']);
@@ -61,6 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('promo/activate', [PromocodeController::class, 'activatePromo']);
 
+    Route::post('telegram/add', [UserController::class, 'addTelegramId']);
     Route::get('telegram/get', [UserController::class, 'telegramGetMe']);
 });
 
