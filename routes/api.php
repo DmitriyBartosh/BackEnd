@@ -31,7 +31,7 @@ use Telegram\Bot\Laravel\Facades\Telegram;
 // Для авторизованных пользователей
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::post('auth/logout', [LogoutController::class, 'logout']);
+    Route::post('auth/logout', [UserController::class, 'logout']);
 
     Route::get('user', [UserController::class, 'getUser']);
 

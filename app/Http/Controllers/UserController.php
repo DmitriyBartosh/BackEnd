@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Telegram\Bot\Api;
+use Telegram\Bot\Exceptions\TelegramResponseException;
 
 class UserController extends Controller
 {
@@ -20,6 +21,17 @@ class UserController extends Controller
         $this->telegram = $telegram;
     }
 
+    public function logout()
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $user->currentAccessToken()->delete();
+
+        return response()->json([
+            "message" => 'Токен был удален'
+        ]);
+    }
+
     public function getUser()
     {
         // Информация о пользователе
@@ -27,23 +39,37 @@ class UserController extends Controller
         $telegramId = $user->telegram_chat;
 
         if ($telegramId === null) {
+            // Если ID телеграма еще не вводилось
             return response()->json([
                 'name' => $user->name,
                 'email' => $user->email,
                 'telegram' => null
             ], 200);
         } else {
-            $telegramUser = $this->telegram->getChat(['chat_id' => $telegramId]);
+            try {
+                $telegramUser = $this->telegram->getChat(['chat_id' => $telegramId]);
+                // Получаем чат пользователя с телеграм ботом
+            } catch (TelegramResponseException $e) {
 
+                // Если ID телеграма введен не верно и чат не найден, выводим ошибку для фронтенда
+                return response()->json([
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'telegram' => [
+                        'error' => true
+                    ]
+                ], 200);
+            }
 
+            // Если никаких ошибок с поиском чата телеграма не выявлено, то мы можем его найти и вывести
             return response()->json([
                 'name' => $user->name,
                 'email' => $user->email,
                 'telegram' => [
+                    'error' => false,
                     'first_name' => $telegramUser->first_name,
                     'last_name' => $telegramUser->last_name,
                     'username' => $telegramUser->username,
-                    'bio' => $telegramUser->bio
                 ]
             ], 200);
         }
@@ -53,18 +79,34 @@ class UserController extends Controller
     {
         // Информация о пользователе
         $user = Auth::user();
-
         $user->telegram_chat = $request->id;
-        $telegramUser = $this->telegram->getChat(['chat_id' => $request->id]);
 
         $user->save();
 
+        try {
+            $telegramUser = $this->telegram->getChat(['chat_id' => $request->id]);
+            // Получаем чат пользователя с телеграм ботом
+        } catch (TelegramResponseException $e) {
+
+            return response()->json([
+                'name' => $user->name,
+                'email' => $user->email,
+                'telegram' => [
+                    'error' => true
+                ]
+            ], 200);
+        }
+
+
+
         return response()->json([
-            'user' => [
+            'name' => $user->name,
+            'email' => $user->email,
+            'telegram' => [
+                'error' => false,
                 'first_name' => $telegramUser->first_name,
                 'last_name' => $telegramUser->last_name,
                 'username' => $telegramUser->username,
-                'bio' => $telegramUser->bio
             ]
         ], 200);
     }
