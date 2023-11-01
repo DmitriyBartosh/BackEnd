@@ -32,6 +32,20 @@ class UserController extends Controller
         ]);
     }
 
+    public function setName(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $user->name = $request->name;
+
+        $user->save();
+
+        return response()->json([
+            "message" => 'Имя было обновлено',
+            "name" => $request->name
+        ]);
+    }
+
     public function getUser()
     {
         // Информация о пользователе

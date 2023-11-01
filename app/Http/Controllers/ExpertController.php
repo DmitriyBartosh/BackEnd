@@ -5,13 +5,42 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Expert;
 use App\Models\Reviews;
+use App\Models\User;
 use App\Models\Works;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Telegram\Bot\Api;
 use YooKassa\Client;
 
 class ExpertController extends Controller
 {
+
+    protected $telegram;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  Api  $telegram
+     */
+    public function __construct(Api $telegram)
+    {
+        $this->telegram = $telegram;
+    }
+
+    public function sendTelegramNotification($telegram_chat, $notification)
+    {
+        // Если телеграм привязан, отправляем уведомление
+        if (isset($telegram_chat)) {
+
+            // Отправляем уведомление пользователю об ошибке
+            $this->telegram->sendMessage([
+                'chat_id' => $telegram_chat,
+                'text' => $notification,
+                'parse_mode' => 'HTML'
+            ]);
+        }
+    }
+
     private function getClient(): Client
     {
         $client = new Client();
@@ -101,6 +130,16 @@ class ExpertController extends Controller
 
         $reviewWork->status = 'verified';
 
+
+        // Находим телеграм чат пользователя и если он есть отправляем уведомление
+        $work = Works::find($reviewWork->work_id);
+        $telegram_chat = User::find($work->user_id)->telegram_chat;
+
+        $notification = "Работа <b>" . $work->name . "</b> готова к рецензии."
+            . PHP_EOL . "После оплаты на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Графикси | Портфолио</a></b> эксперт начнет писать рецензию.";
+
+        $this->sendTelegramNotification($telegram_chat, $notification);
+
         $reviewWork->save();
 
         return response()->json(['message' => "Работы успешно прошла проверку!"], 200);
@@ -115,6 +154,15 @@ class ExpertController extends Controller
 
         $reviewWork->status = 'fail';
         $reviewWork->message_failure = $message;
+
+        // Находим телеграм чат пользователя и если он есть отправляем уведомление
+        $work = Works::find($reviewWork->work_id);
+        $telegram_chat = User::find($work->user_id)->telegram_chat;
+
+        $notification = "В работу <b>" . $work->name . "</b> нужно внести правки."
+            . PHP_EOL . "Подробный текст правки на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Графикси | Портфолио</a>.</b>";
+
+        $this->sendTelegramNotification($telegram_chat, $notification);
 
         $reviewWork->save();
 
@@ -139,10 +187,19 @@ class ExpertController extends Controller
         $client = $this->getClient();
         $payment = $client->getPaymentInfo($reviewWork->transaction_id);
 
+        // Уведомления для пользователя
+        $work = Works::find($reviewWork->work_id);
+        $telegram_chat = User::find($work->user_id)->telegram_chat;
+
+        $notification = "Рецензия на работу <b>" . $work->name . "</b> готова."
+            . PHP_EOL . "Работу можно дополнить в течении 5 дней, до <b>" . date('d.m.Y', strtotime($deadline)) . ".</b>"
+            . PHP_EOL . "Подробный текст рецензии на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Графикси | Портфолио</a>.</b>";
+
+        // Отправляем уведомление
+        $this->sendTelegramNotification($telegram_chat, $notification);
+
+
         if ($payment->status === "waiting_for_capture") {
-
-
-
             // Получаем дату создания платежа
             $createdAt = Carbon::parse($payment->created_at);
 
@@ -207,6 +264,16 @@ class ExpertController extends Controller
         $message = $request->message;
 
         $reviewWork = Reviews::find($reviewId);
+
+        // Уведомления для пользователя
+        $work = Works::find($reviewWork->work_id);
+        $telegram_chat = User::find($work->user_id)->telegram_chat;
+
+        $notification = "Прекрасня работа, ждем публикацию <b>" . $work->name . "</b> на Графикси!"
+            . PHP_EOL . "Подробный текст рецензии и инструкция для публикации на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Графикси | Портфолио</a>.</b>";
+
+        // Отправляем уведомление
+        $this->sendTelegramNotification($telegram_chat, $notification);
 
         // Подтверждаем платеж
         $client = $this->getClient();
@@ -276,6 +343,17 @@ class ExpertController extends Controller
 
         $reviewWork = Reviews::find($reviewId);
 
+        // Уведомления для пользователя
+        $work = Works::find($reviewWork->work_id);
+        $telegram_chat = User::find($work->user_id)->telegram_chat;
+
+        $notification = "Рецензия на работу <b>" . $work->name . "</b> готова."
+            . PHP_EOL . "Подробный текст рецензии на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Графикси | Портфолио</a>.</b>";
+
+        // Отправляем уведомление
+        $this->sendTelegramNotification($telegram_chat, $notification);
+
+
         $reviewWork->status = 'notcounted';
         $reviewWork->message_notcounted = $message;
 
@@ -296,6 +374,18 @@ class ExpertController extends Controller
         $deadline = $currentDate->addDays(5);
 
         $reviewWork = Reviews::find($reviewId);
+
+        // Уведомления для пользователя
+        $work = Works::find($reviewWork->work_id);
+        $telegram_chat = User::find($work->user_id)->telegram_chat;
+
+        $notification = "Работу <b>" . $work->name . "</b> можно доработать до <b>"  . date('d.m.Y', strtotime($deadline)) . ".</b>"
+            . PHP_EOL . "Вернуться к работе на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Графикси | Портфолио</a>.</b>";
+
+        // Отправляем уведомление
+        $this->sendTelegramNotification($telegram_chat, $notification);
+
+
         $reviewWork->status = 'revision';
 
         // Записываем дату до которой можно сдать работу

@@ -72,7 +72,7 @@ class PromocodeController extends Controller
                 // Промокод уже активирован
                 return response()->json([
                     'activate' => false,
-                    'message' => "Вы уже использовали похожий промокод.",
+                    'message' => "Вы уже использовали похожий промокод",
                 ]);
             } else {
                 // Проверяем не активирован ли промокод другим пользователем
@@ -126,13 +126,13 @@ class PromocodeController extends Controller
                     // Промокод уже активирован
                     return response()->json([
                         'activate' => false,
-                        'message' => "Промокод уже активирован другим пользователем.",
+                        'message' => "Промокод уже активирован другим пользователем",
                     ]);
                 }
             }
         } else {
             // Запись не существует
-            return response()->json(['activate' => false, 'message' => 'Промокод не найден.']);
+            return response()->json(['activate' => false, 'message' => 'Промокод не найден']);
         }
     }
 }

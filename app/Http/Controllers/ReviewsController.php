@@ -5,14 +5,43 @@ namespace App\Http\Controllers;
 use App\Models\Expert;
 use App\Models\Reviews;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\Works;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Telegram\Bot\Api;
 use YooKassa\Client;
 
 class ReviewsController extends Controller
 {
+
+    protected $telegram;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  Api  $telegram
+     */
+    public function __construct(Api $telegram)
+    {
+        $this->telegram = $telegram;
+    }
+
+    public function sendTelegramNotification($telegram_chat, $message)
+    {
+        // Если телеграм привязан, отправляем уведомление
+        if (isset($telegram_chat)) {
+
+            // Отправляем уведомление пользователю об ошибке
+            $this->telegram->sendMessage([
+                'chat_id' => $telegram_chat,
+                'text' => $message,
+                'parse_mode' => 'HTML'
+            ]);
+        }
+    }
+
     private function getClient(): Client
     {
         $client = new Client();
@@ -26,21 +55,42 @@ class ReviewsController extends Controller
         $user = Auth::user();
 
         $user_id = $user->id;
+        $user_name = $user->name;
         $expert_id = $request->expert_id;
 
+        // Проверяем, если есть привязанные телеграм, то в контакты для обратной связи записываем телеграм, если нет, то почту
+        if (isset($user->telegram_chat)) {
+            $telegramUser = $this->telegram->getChat(['chat_id' => $user->telegram_chat]);
+            $user_contact = "<a href='" . "https://t.me/" . $telegramUser->username . "'>" . "@" . $telegramUser->username . "</a>";
+        } else {
+            $user_contact = $user->email;
+        }
+
+        // Добавить уведомление для эксперта о новой работе
         $works = $request->works;
+        $message = "<b>" . $user_name . " / " . $user_contact . "</b> отправил работы на рецензию."
+            . PHP_EOL . "<b>Список работ:</b>";
 
         foreach ($works as $workData) {
-            $workId = (int) $workData['id'];
+            $work_id = (int) $workData['id'];
 
             $review = new Reviews();
 
             $review->user_id = $user_id;
             $review->expert_id = (int) $expert_id;
-            $review->work_id = $workId;
+            $review->work_id = $work_id;
+
+            $work_name = Works::find($work_id)->name;
+            $message .= PHP_EOL . $work_name;
 
             $review->save();
         }
+
+        $message .= PHP_EOL . "Открыть <b><a href='" . env('FRONTEND_URL') . "/admin'>Графикси | Админ панель</a></b>.";
+
+        $expert_telegram = User::find($expert_id)->telegram_chat;
+
+        $this->sendTelegramNotification($expert_telegram, $message);
 
         return response()->json(['message' => 'Работы добавлены для рецензирования!'], 200);
     }
@@ -117,6 +167,14 @@ class ReviewsController extends Controller
             $work->save();
         }
 
+        $user = User::find($review->user_id);
+        $work_name = Works::find($review->work_id)->name;
+
+        $notification = "<b>" . $user->name . "</b> дополнил/исправил работу - <b>" . $work_name . "</b>."
+            . PHP_EOL . "Открыть <b><a href='" . env('FRONTEND_URL') . "/admin'>Графикси | Админ панель</a></b>.";
+
+        $this->sendTelegramNotification($user->telegram_chat, $notification);
+
         $review->status = 'checking';
         $review->save();
 
@@ -129,6 +187,14 @@ class ReviewsController extends Controller
         $idReview = $request->id;
 
         $review = Reviews::find($idReview);
+
+        $user = User::find($review->user_id);
+        $work_name = Works::find($review->work_id)->name;
+
+        $notification = "<b>" . $user->name . "</b> внес правки в работу - <b>" . $work_name . "</b>, после первой рецензии."
+            . PHP_EOL . "Открыть <b><a href='" . env('FRONTEND_URL') . "/admin'>Графикси | Админ панель</a></b>.";
+
+        $this->sendTelegramNotification($user->telegram_chat, $notification);
 
         $review->user_comment = $request->comment;
         $review->status = 'secondchecked';
@@ -190,6 +256,19 @@ class ReviewsController extends Controller
             $payment = $client->getPaymentInfo($review->transaction_id);
 
             if ($payment->paid) {
+                // Если сообщение об оплате еще не приходило, отправить
+                if ($review->status !== 'firstchecked') {
+                    $user = User::find($review->user_id);
+                    $work_name = Works::find($review->work_id)->name;
+
+                    $notification = "<b>" . $user->name . "</b> оплатил рецензию для работы - <b>" . $work_name . "</b>."
+                        . PHP_EOL . "Проверить работу в течении трех дней, до <b>" . date('d.m.Y', strtotime('+3 days', strtotime($review->updated_at))) . ".</b>"
+                        . PHP_EOL . "Открыть <b><a href='" . env('FRONTEND_URL') . "/admin'>Графикси | Админ панель</a></b>.";
+
+                    $this->sendTelegramNotification($user->telegram_chat, $notification);
+                }
+
+
                 $review->status = 'firstchecked';
                 $review->save();
 
