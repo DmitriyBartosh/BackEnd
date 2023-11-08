@@ -33,6 +33,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('user', [UserController::class, 'getUser']);
     Route::post('user/setname', [UserController::class, 'setName']);
 
+    Route::get('transactions/all', [UserController::class, 'allTransactions']);
+
+    Route::get('payment', [PaymentController::class, 'createPayment']);
+    Route::get('payment/get', [PaymentController::class, 'getPayments']);
+    Route::get('payment/all', [PaymentController::class, 'allPayments']);
+
     Route::get('works/all', [WorksController::class, 'getWorks']);
     Route::post('works/add', [WorksController::class, 'addWorks']);
     Route::post('works/edit', [WorksController::class, 'editWorks']);
@@ -86,9 +92,7 @@ Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert|Photo Exp
     Route::post('expert/work/extend', [ExpertController::class, 'extendDeadline']);
 });
 
-Route::get('payment', [PaymentController::class, 'createPayment']);
-Route::get('payment/get', [PaymentController::class, 'getPayments']);
-Route::get('payment/all', [PaymentController::class, 'allPayments']);
+
 
 Route::get('auth/vk', [VkAuthController::class, 'redirectToAuth']);
 Route::get('auth/vk/callback', [VkAuthController::class, 'handleAuthCallback']);

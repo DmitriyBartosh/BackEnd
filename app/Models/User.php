@@ -46,6 +46,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+
     public function allworks()
     {
         return $this->hasMany(Works::class)->select('id', 'theme', 'direction', 'name', 'link');

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Telegram\Bot\Api;
 use Telegram\Bot\Exceptions\TelegramResponseException;
+use YooKassa\Client;
 
 class UserController extends Controller
 {
@@ -19,6 +20,14 @@ class UserController extends Controller
     public function __construct(Api $telegram)
     {
         $this->telegram = $telegram;
+    }
+
+    private function getClient(): Client
+    {
+        $client = new Client();
+        $client->setAuth(config('services.yookassa.client_id'), config('services.yookassa.client_key'));
+
+        return $client;
     }
 
     public function logout()
@@ -123,5 +132,36 @@ class UserController extends Controller
                 'username' => $telegramUser->username,
             ]
         ], 200);
+    }
+
+    public function allTransactions()
+    {
+        $user = Auth::user();
+
+        $transactions = [];
+
+        $subscribesTransaction = $user->allsubscribes->pluck('transaction_id')->toArray();
+        $reviewsTransaction = $user->work_on_review->pluck('transaction_id')->toArray();
+
+        // Объединить transaction_id из обоих таблиц
+        $transactions = array_merge($subscribesTransaction, $reviewsTransaction);
+
+        $client = $this->getClient();
+        $payments = [];
+
+        foreach ($transactions as $transaction) {
+            if ($transaction) {
+                $payment = $client->getPaymentInfo($transaction);
+                $payments[] = $payment;
+            }
+        }
+
+        usort($payments, function ($a, $b) {
+            return $b->created_at <=> $a->created_at;
+        });
+
+        return response()->json([
+            'transactions' => $payments,
+        ]);
     }
 }

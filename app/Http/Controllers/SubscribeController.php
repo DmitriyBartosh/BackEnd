@@ -29,50 +29,102 @@ class SubscribeController extends Controller
         // Выбранное направление
         $plan = Plan::where('name', $request->direction)->first();
 
-        // Получаем текущую дату
-        $now = Carbon::now();
-        $end = Carbon::now()->addDays($plan->periodicity);
-
-        // Создаем платеж
-        $client = $this->getClient();
-        $payment = $client->createPayment(
-            array(
-                'amount' => array(
-                    'value' => (int) $request->cost,
-                    'currency' => 'RUB',
-                ),
-                'confirmation' => array(
-                    'type' => 'redirect',
-                    'return_url' => config('app.frontend_url') . "/portfolio",
-                ),
-                'metadata' => array(
-                    'user' => $user->email,
-                    'direciton' => $request->name,
-                    'start' => $now,
-                    'end' => $end
-                ),
-                'payment_method_data' => $request->method,
-                'capture' => true,
-                'description' => 'Доступ к направлению «' . $request->name . "» на 30 дней.",
-            ),
-            uniqid('', true)
-        );
+        $subscriptionExists = Subscribe::where('plan_id', $plan->id)
+            ->where('active', true)
+            ->exists();
 
         $subscribe = new Subscribe();
         $subscribe->user_id = $user->id;
         $subscribe->plan_id = $plan->id;
-        $subscribe->transaction_id = $payment->id;
+
+        // Если уже есть активная подписка, то продляем ее
+        if ($subscriptionExists) {
+            $subscribe_expired_at = Subscribe::where('plan_id', $plan->id)
+                ->where('active', true)
+                ->orderBy('expired_at', 'desc')
+                ->first()
+                ->expired_at;
+
+            $now = Carbon::parse($subscribe_expired_at)->addDay(1);
+            $end = Carbon::parse($subscribe_expired_at)->addDays($plan->periodicity);
+
+            $client = $this->getClient();
+            $payment = $client->createPayment(
+                array(
+                    'amount' => array(
+                        'value' => (int) $request->cost,
+                        'currency' => 'RUB',
+                    ),
+                    'confirmation' => array(
+                        'type' => 'redirect',
+                        'return_url' => config('app.frontend_url') . "/portfolio",
+                    ),
+                    'metadata' => array(
+                        'user' => $user->email,
+                        'direciton' => $request->name,
+                        'start' => $now,
+                        'end' => $end
+                    ),
+                    'payment_method_data' => $request->method,
+                    'capture' => true,
+                    'description' => 'Доступ к направлению «' . $request->name . "» на 30 дней.",
+                ),
+                uniqid('', true)
+            );
+
+            $subscribe->transaction_id = $payment->id;
+            $subscribe->transaction_status = 'pending';
+            $subscribe->started_at = $now;
+            $subscribe->expired_at = $end;
+
+            $subscribe->save();
 
 
-        $subscribe->transaction_status = 'pending';
-        $subscribe->started_at = $now;
-        $subscribe->expired_at = $end;
+            return response()->json([
+                'url' => $payment->confirmation->confirmation_url,
+            ]);
+        } else {
+            // Получаем текущую дату
+            $now = Carbon::now();
+            $end = Carbon::now()->addDays($plan->periodicity);
 
-        $subscribe->save();
+            // Создаем платеж
+            $client = $this->getClient();
+            $payment = $client->createPayment(
+                array(
+                    'amount' => array(
+                        'value' => (int) $request->cost,
+                        'currency' => 'RUB',
+                    ),
+                    'confirmation' => array(
+                        'type' => 'redirect',
+                        'return_url' => config('app.frontend_url') . "/portfolio",
+                    ),
+                    'metadata' => array(
+                        'user' => $user->email,
+                        'direciton' => $request->name,
+                        'start' => $now,
+                        'end' => $end
+                    ),
+                    'payment_method_data' => $request->method,
+                    'capture' => true,
+                    'description' => 'Доступ к направлению «' . $request->name . "» на 30 дней.",
+                ),
+                uniqid('', true)
+            );
 
-        return response()->json([
-            'url' => $payment->confirmation->confirmation_url
-        ]);
+
+            $subscribe->transaction_id = $payment->id;
+            $subscribe->transaction_status = 'pending';
+            $subscribe->started_at = $now;
+            $subscribe->expired_at = $end;
+
+            $subscribe->save();
+
+            return response()->json([
+                'url' => $payment->confirmation->confirmation_url,
+            ]);
+        }
     }
 
     public function checkPayment($subscribe)
@@ -142,7 +194,7 @@ class SubscribeController extends Controller
             // Проверяем активен ли абонемент
             if ($now <= $endDate && $item['active']) {
                 // Определяем количество дней, оставшихся до конца подписки
-                $daysLeft = $now->diffInDays($item['expired_at']);
+                $daysLeft = $now->diffInDays($item['expired_at']) + 1;
                 $isActive = true;
             } else {
                 $daysLeft = 0;
@@ -168,8 +220,27 @@ class SubscribeController extends Controller
             }
         }
 
+        // Все не активные подписки
+        $allNotActiveSubscribes = array_filter($subscribes, function ($subscribe) {
+            return !$subscribe['active'];
+        });
+
+        // Все активные подписки (они могут быть несколько активных по одному направлению, каждая друг друга продолжает)
+        $allActiveSubscribes = array_filter($subscribes, function ($subscribe) {
+            return $subscribe['active'];
+        });
+
+        // Только уникальная подписка, которая идет последней
+        $UniqueActiveSubscribes = collect($allActiveSubscribes)->groupBy('plan')->map(function ($group) {
+            return $group->max('days_left');
+        })->map(function ($maxDaysLeft, $plan) use ($allActiveSubscribes) {
+            return collect($allActiveSubscribes)->where('plan', $plan)->where('days_left', $maxDaysLeft)->first();
+        })->values()->toArray();
+
+        $result = array_merge($allNotActiveSubscribes, $UniqueActiveSubscribes);
+
         return response()->json([
-            'subscribes' => $subscribes
+            'subscribes' => $result,
         ]);
     }
 }

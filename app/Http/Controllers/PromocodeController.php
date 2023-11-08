@@ -87,6 +87,7 @@ class PromocodeController extends Controller
                     // Проверяем, есть ли активная подписка
                     $subscription = Subscribe::where('active', true)
                         ->where('plan_id', $directionPlan->id)
+                        ->latest('expired_at')
                         ->first();
 
                     if ($subscription) {

@@ -118,7 +118,6 @@ class ReviewsController extends Controller
             }
         }
 
-
         return response()->json([
             'works' => $works
         ]);
