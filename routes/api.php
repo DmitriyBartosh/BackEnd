@@ -24,7 +24,7 @@ use App\Http\Controllers\WorksController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+// При добавлении новой ролу добавить в route/api и admin check
 // Для авторизованных пользователей
 Route::middleware(['auth:sanctum'])->group(function () {
 
@@ -32,6 +32,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('user', [UserController::class, 'getUser']);
     Route::post('user/setname', [UserController::class, 'setName']);
+
+    Route::get('admin/check', [UserController::class, 'checkAdmin']);
 
     Route::get('transactions/all', [UserController::class, 'allTransactions']);
 
@@ -60,6 +62,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('telegram/add', [UserController::class, 'addTelegramId']);
     Route::get('telegram/get', [UserController::class, 'telegramGetMe']);
+    Route::post('telegram/message', [UserController::class, 'sendMessage']);
 
     Route::get('telegram/message', [TelegramController::class, 'sendMessage']);
 });

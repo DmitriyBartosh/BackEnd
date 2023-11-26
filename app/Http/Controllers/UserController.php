@@ -134,6 +134,35 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function sendMessage(Request $request)
+    {
+        // Информация о пользователе
+        $user = Auth::user();
+        $theme = $request->theme;
+
+        $message = "<b>Фитбек с Графикси из темы ";
+        $message .= $theme . ":</b>";;
+
+        $message .= PHP_EOL . PHP_EOL . $request->message;
+
+        if (isset($user->telegram_chat)) {
+            $telegramUser = $this->telegram->getChat(['chat_id' => $user->telegram_chat]);
+            $message .= PHP_EOL . PHP_EOL . "Сообщение от <a href='" . "https://t.me/" . $telegramUser->username . "'>" . "@" . $telegramUser->username . "</a>.";
+        } else {
+            $message .= PHP_EOL . PHP_EOL . "Сообщение от <b>" . $user->email  . "</b>.";
+        }
+
+        $response = $this->telegram->sendMessage([
+            'chat_id' => -4093996261,
+            'text' => $message,
+            'parse_mode' => 'HTML'
+        ]);
+
+        return response()->json([
+            'response' => $response
+        ], 200);
+    }
+
     public function allTransactions()
     {
         $user = Auth::user();
@@ -162,6 +191,19 @@ class UserController extends Controller
 
         return response()->json([
             'transactions' => $payments,
+        ]);
+    }
+
+    public function checkAdmin()
+    {
+        $user = Auth::user();
+
+        $isAdmin = $user->hasRole('Super Admin');
+        $isExpert = $user->hasRole('Design Expert|Frontend Expert|Photo Expert');
+
+        return response()->json([
+            "god" => $isAdmin,
+            'admin' => $isExpert
         ]);
     }
 }
