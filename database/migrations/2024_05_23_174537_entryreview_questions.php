@@ -11,20 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('entryreview_questions', function (Blueprint $table) {
             $table->id();
-            $table->string('vkontakte_id')->nullable();
-            $table->string('yandex_id')->nullable();
-            $table->string('google_id')->nullable();
 
+            $table->string('slug');
             $table->string('name');
-            $table->string('email')->unique();
 
-            $table->json('telegram_chat')->nullable();
+            $table->json('questions');
 
-            $table->rememberToken();
+            $table->integer('price')->default(100);
+
             $table->timestamps();
-        });
+         });
     }
 
     /**
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('entryreview_questions');
     }
 };

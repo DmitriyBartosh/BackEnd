@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\VkAuthController;
 use App\Http\Controllers\Auth\YandexAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\EntrytestController;
 use App\Http\Controllers\ExpertController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PromocodeController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\SubscribeController;
 use App\Http\Controllers\TelegramController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorksController;
+use App\Http\Controllers\EntryreviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +67,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('telegram/message', [UserController::class, 'sendMessage']);
 
     Route::get('telegram/message', [TelegramController::class, 'sendMessage']);
+
+    Route::get('entryreview/getquestions/{direction}', [EntryreviewController::class, 'getAllQuestions']);
+    Route::post('entryreview/add', [EntryreviewController::class, 'addEntryReview']);
+    Route::get('entryreview/get', [EntryreviewController::class, 'getEntryReview']);
 });
 
 // Добавлять или удалять администраторов для супер админа
@@ -77,10 +83,12 @@ Route::middleware(['auth:sanctum', 'role:Super Admin'])->group(function () {
 
     Route::post('promo/add', [PromocodeController::class, 'generatePromoCodes']);
     Route::get('promo/all', [PromocodeController::class, 'getAllPromoCodes']);
+
+    Route::post('entryreview/addquestions', [EntryreviewController::class, 'addQuestions']);
 });
 
 // Для Экспертов по дизайну
-Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert|Photo Expert'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert'])->group(function () {
     Route::get('expert/allworks/{direction}', [ExpertController::class, 'getAllWorks']);
 
     Route::get('expert/get', [ExpertController::class, 'getExpert']);
@@ -93,6 +101,9 @@ Route::middleware(['auth:sanctum', 'role:Design Expert|Frontend Expert|Photo Exp
     Route::post('expert/work/revision', [ExpertController::class, 'workRevision']);
     Route::post('expert/work/notcounted', [ExpertController::class, 'workNotCounted']);
     Route::post('expert/work/extend', [ExpertController::class, 'extendDeadline']);
+
+    Route::get('entryreview/answers/{direction}', [EntryreviewController::class, 'getAllAnswers']);
+    Route::post('entryreview/feetback', [EntryreviewController::class, 'addFeetback']);
 });
 
 

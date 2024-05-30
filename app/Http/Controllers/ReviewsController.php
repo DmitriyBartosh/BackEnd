@@ -56,7 +56,7 @@ class ReviewsController extends Controller
 
         $user_id = $user->id;
         $user_name = $user->name;
-        $expert_id = $request->expert_id;
+        $expert = Expert::find($request->expert_id);
 
         // Проверяем, если есть привязанные телеграм, то в контакты для обратной связи записываем телеграм, если нет, то почту
         if (isset($user->telegram_chat)) {
@@ -77,7 +77,7 @@ class ReviewsController extends Controller
             $review = new Reviews();
 
             $review->user_id = $user_id;
-            $review->expert_id = (int) $expert_id;
+            $review->expert_id = (int) $expert->id;
             $review->work_id = $work_id;
 
             $work_name = Works::find($work_id)->name;
@@ -88,11 +88,11 @@ class ReviewsController extends Controller
 
         $message .= PHP_EOL . "Открыть <b><a href='" . env('FRONTEND_URL') . "/admin'>Графикси | Админ панель</a></b>.";
 
-        $expert_telegram = User::find($expert_id)->telegram_chat;
+        $expert_telegram = User::find($expert->user_id)->telegram_chat;
 
         $this->sendTelegramNotification($expert_telegram, $message);
 
-        return response()->json(['message' => 'Работы добавлены для рецензирования!'], 200);
+        return response()->json(['message' => 'Работы добавлены для рецензирования!', '$expert' => $expert], 200);
     }
 
     public function allWorksOnReview()
