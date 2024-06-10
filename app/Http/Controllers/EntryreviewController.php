@@ -97,6 +97,7 @@ class EntryreviewController extends Controller
     {
         // Информация о пользователе
         $user = Auth::user();
+
         $newAnswers = new EntryreviewAnswers();
         $newAnswers->user_id = $user->id;
         $newAnswers->slug = $request->slug;
@@ -114,7 +115,7 @@ class EntryreviewController extends Controller
                 ),
                 'confirmation' => array(
                     'type' => 'redirect',
-                    'return_url' => config('app.frontend_url') . "/entry/review",
+                    'return_url' => config('app.frontend_url') . "/portfolio",
                 ),
                 'metadata' => array(
                     'user' => $user->email
@@ -232,19 +233,22 @@ class EntryreviewController extends Controller
         if ($entryReview) {
             $entryReview->annotation = $request->annotation;
             $entryReview->roadmap = $request->roadmap;
-            $entryReview->status = 'complete';
+
+            if($entryReview->status === 'paid') {
+                // Уведомления для пользователя
+                $telegram_chat = User::find($entryReview->user_id)->telegram_chat;
+
+                $notification = "Мы изучили ответы и подготовили для тебя карту знаний."
+                . PHP_EOL . "Смотри на " . "<b><a href='" . env('FRONTEND_URL') . "/portfolio'>Мое портфолио | Графикси</a>.</b>";
+
+                // Отправляем уведомление
+                $this->sendTelegramNotification($telegram_chat, $notification);
+
+                $entryReview->status = 'complete';
+            }
 
             // Сохранить изменения
             $entryReview->save();
-
-                   // Уведомления для пользователя
-        $telegram_chat = User::find($entryReview->user_id)->telegram_chat;
-
-        $notification = "Мы изучили ответы и подготовили для тебя карту знаний."
-            . PHP_EOL . "Смотри на " . "<b><a href='" . env('FRONTEND_URL') . "/entry/review'>Графикси | DesignReview 360</a>.</b>";
-
-        // Отправляем уведомление
-        $this->sendTelegramNotification($telegram_chat, $notification);
 
             return response()->json(['message' => 'Обратная связь по DesignReview запиана в базу.', 'telegram_chat' => $telegram_chat, '$request' => $request]);
         }
