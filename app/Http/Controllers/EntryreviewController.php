@@ -250,7 +250,7 @@ class EntryreviewController extends Controller
             // Сохранить изменения
             $entryReview->save();
 
-            return response()->json(['message' => 'Обратная связь по DesignReview запиана в базу.', 'telegram_chat' => $telegram_chat, '$request' => $request]);
+            return response()->json(['message' => 'Запись сохранена']);
         }
 
         return response()->json(['message' => 'Запись не найдена'], 404);
